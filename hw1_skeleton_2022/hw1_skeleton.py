@@ -6,27 +6,27 @@
 
 import numpy as np
 import cv2
+import math
 
 # 얘같은 경우 for문 안쓰고 할 수 있는데 넘파이의 강점?
-#[열, 행, 넘버] 인데 넘버는 채널이다. 즉 0,1,2 skdha
+#[열, 행, 넘버] 인데 넘버는 채널이다. 즉 0,1,2 나옴
 def convertRGBtoGray(rgb):
     gray  = rgb[:,:,0] * 0.114 + rgb[:,:,1] * 0.587 + rgb[:,:,2] * 0.299
-    # 그레
     gray = np.squeeze(gray).astype(np.uint8)
     return gray # 그 차원에 해당하는 메트릭스를 반환. 이때부턴 1차원임 8비트인 뭐...
 
 # val 더해주는 값이고 gray는 바로 위에 변수래. 0으로 초기화된 이미지 만들고
 def brightness(gray, val):
-    res_img = gray.copy() * 0
-
+    # res_img = gray.copy() * 0
     # your code here
+    res_img = np.clip((gray.copy()+val),0,255).astype(np.uint8)
 
     return res_img
 
 def contrast(gray, grad, inter):
-    res_img = gray.copy() * 0
-
+    # res_img = gray.copy() * 0
     # your code here
+    res_img = np.clip((grad * gray.copy()+inter), 0, 255).astype(np.uint8)
 
     return res_img
 
@@ -40,6 +40,10 @@ def scaling1(gray, s):
     # for r in range(h):
     #     for c in range(w):
 
+    for r in range(h):
+        for c in range(w):
+            res_img[r*s][c*s] = gray[r][c]
+
     return res_img
 
 def scaling2(gray, s):
@@ -50,14 +54,29 @@ def scaling2(gray, s):
     #  backward warping
     # for r in range(h*s):
     #     for c in range(w*s):
+    for r in range(h*s):
+        for c in range(w*s):
+            res_img[r][c] = gray[math.floor(r/s)][math.floor((c/s))]
 
     return res_img
 
 # deg: angle
 def rotation(gray, angle):
-    res_img = gray.copy() * 0
-
+    #res_img = gray.copy() * 0
     #  your code here
+    h, w =gray.shape
+    print(h,w)
+    res_img = np.zeros((int(h), int(w)),gray.dtype)
+    angle = angle * math.pi / 180
+
+    affine = np.array([[math.cos(angle),-1*math.sin(angle)],
+                      [math.sin(angle),math.cos(angle)]])
+
+    for r in range(h):
+        for c in range(w):
+            data = np.matmul(affine, np.array([[r-h/2], [c-w/2]])) + np.array([[h/2],[w/2]])
+            if h >math.ceil(data[0]) > 0 and 0 < math.ceil(data[1]) < w:
+                res_img[r][c] = gray[math.ceil(data[0])][math.ceil(data[1])]
 
     return res_img
 

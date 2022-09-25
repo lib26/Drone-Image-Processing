@@ -5,36 +5,34 @@
 #
 
 import numpy as np
-import cv2
+import cv2 as cv
 import math
 
-# 얘같은 경우 for문 안쓰고 할 수 있는데 넘파이의 강점?
-#[열, 행, 넘버] 인데 넘버는 채널이다. 즉 0,1,2 나옴
+# for loop 안 쓰고 할 수 있다. 넘파이 강점
+#[열, 행, 넘버] 인데 넘버는 채널. (320, 400, 3)
 def convertRGBtoGray(rgb):
     gray  = rgb[:,:,0] * 0.114 + rgb[:,:,1] * 0.587 + rgb[:,:,2] * 0.299
-    gray = np.squeeze(gray).astype(np.uint8)
-    return gray # 그 차원에 해당하는 메트릭스를 반환. 이때부턴 1차원임 8비트인 뭐...
+    gray = np.squeeze(gray).astype(np.uint8) # 차원 낮추기
+    print(gray.shape)
+    return gray # 그 차원에 해당하는 메트릭스를 반환. gray니까 1차원. 8비트
 
-# val 더해주는 값이고 gray는 바로 위에 변수래. 0으로 초기화된 이미지 만들고
+# val 더해주는 값. 0으로 초기화된 이미지를 먼저 만든다.
 def brightness(gray, val):
     # res_img = gray.copy() * 0
     # your code here
-    res_img = np.clip((gray.copy()+val),0,255).astype(np.uint8)
-
+    res_img = np.clip(gray.copy() + val.__float__(), 0, 255).astype(np.uint8)
     return res_img
 
 def contrast(gray, grad, inter):
     # res_img = gray.copy() * 0
     # your code here
     res_img = np.clip((grad * gray.copy()+inter), 0, 255).astype(np.uint8)
-
     return res_img
 
 def scaling1(gray, s):
-    h, w = gray.shape
-    res_img = np.zeros((int(h*s), int(w*s)), gray.dtype)
+    h, w = gray.shape #(h:320, w:400)
+    res_img = np.zeros((int(h*s), int(w*s)), gray.dtype) # 0으로 초기화된 matrics
 
-    # 요런 코드 고대로 쓸거래
     # your code here (uncomment below)
     #  forward warping
     # for r in range(h):
@@ -61,16 +59,15 @@ def scaling2(gray, s):
     return res_img
 
 # deg: angle
-def rotation(gray, angle):
+def rotation(gray, radian):
     #res_img = gray.copy() * 0
     #  your code here
     h, w =gray.shape
-    print(h,w)
-    res_img = np.zeros((int(h), int(w)),gray.dtype)
-    angle = angle * math.pi / 180
+    res_img = np.zeros((int(h), int(w)), gray.dtype)
+    radian = radian * math.pi / 180
 
-    affine = np.array([[math.cos(angle),-1*math.sin(angle)],
-                      [math.sin(angle),math.cos(angle)]])
+    affine = np.array([[math.cos(radian), -1 * math.sin(radian)],
+                       [math.sin(radian), math.cos(radian)]])
 
     for r in range(h):
         for c in range(w):
@@ -85,15 +82,17 @@ def rotation(gray, angle):
 if __name__ == '__main__':
 
     # open image
-    img_rgb = cv2.imread('image.png', cv2.IMREAD_COLOR)
+    img_rgb = cv.imread('image.png', cv.IMREAD_COLOR)
 
-    # get dimension 쉐입속성은  3개의 튜플을 전달하는거. 하이트 위드스임. y좌표 기준이라 하이트부터 나옴. 채널은 그레이채널이면 1이 나오고 rgb니까 3채널 나옴
+    # get dimension shape 속성은 3개의 튜플을 전달한다
+    # height width. y좌표 기준이라 h 부터 나온다
+    # 채널은 그레이 채널이면 1이, rgb면 3채널
     h, w, ch = img_rgb.shape
 
     # if you want to know the dimension of img_rgb, remove comment below
-    # print(img_rgb.shape)
+    # print(img_rgb.shape) #-> (320, 400, 3)
 
-    # mission 1 : convert color image to grayscale 원본 집어넣고
+    # mission 1 : convert color image to grayscale
     img_gray = convertRGBtoGray(img_rgb)
 
     # mission 2: decrease brightness
@@ -117,13 +116,13 @@ if __name__ == '__main__':
     img_rotation = rotation(img_gray, 30)
 
     #concatenate results
-    img_res1 = cv2.hconcat([img_gray, img_bright, img_contrast])
-    img_res2 = cv2.hconcat([img_scaling1, img_scaling2])
+    img_res1 = cv.hconcat([img_gray, img_bright, img_contrast])
+    img_res2 = cv.hconcat([img_scaling1, img_scaling2])
 
 
     # display input image & results
-    cv2.imshow('input image', img_rgb)
-    cv2.imshow('gray, bright, contrast', img_res1)
-    cv2.imshow('scaling', img_res2)
-    cv2.imshow('rotation', img_rotation)
-    cv2.waitKey(0)
+    cv.imshow('input image', img_rgb)
+    cv.imshow('gray, bright, contrast', img_res1)
+    cv.imshow('scaling', img_res2)
+    cv.imshow('rotation', img_rotation)
+    cv.waitKey(0)

@@ -1,16 +1,22 @@
 import numpy as np
 import cv2
+
 img1 = cv2.imread('SIFT_images/object1.jpg', cv2.IMREAD_GRAYSCALE)
 img2 = cv2.imread('SIFT_images/scene2.jpg', cv2.IMREAD_GRAYSCALE)
+
 detector = sift = cv2.xfeatures2d.SIFT_create()
+
 keypoints1, descriptors1 = detector.detectAndCompute(img1, None)
 keypoints2, descriptors2 = detector.detectAndCompute(img2, None)
+
 img_res_detect1 = cv2.drawKeypoints(img1, keypoints1, None)
 img_res_detect2 = cv2.drawKeypoints(img2, keypoints2, None)
+
 matcher = cv2.DescriptorMatcher_create(cv2.DescriptorMatcher_FLANNBASED)
 knn_matches = matcher.knnMatch(descriptors1, descriptors2, 2)
 ratio_thresh = 0.3
 good_matches = []
+
 for m,n in knn_matches:
     if m.distance < ratio_thresh * n.distance:
         good_matches.append(m)

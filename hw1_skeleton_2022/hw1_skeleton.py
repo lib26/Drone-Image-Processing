@@ -66,16 +66,17 @@ def rotation(gray, radian):
     res_img = np.zeros((int(h), int(w)), gray.dtype)
     radian = radian * math.pi / 180
 
-    affine = np.array([[math.cos(radian), -1 * math.sin(radian)],
+    rotation = np.array([[math.cos(radian), -1 * math.sin(radian)],
                        [math.sin(radian), math.cos(radian)]])
 
     for r in range(h):
         for c in range(w):
-            data = np.matmul(affine, np.array([[r-h/2], [c-w/2]])) + np.array([[h/2],[w/2]])
-            if h >math.ceil(data[0]) > 0 and 0 < math.ceil(data[1]) < w:
-                res_img[r][c] = gray[math.ceil(data[0])][math.ceil(data[1])]
+            data = rotation.dot(np.array([[r-h/2], [c-w/2]])) + np.array([[h/2],[w/2]])
+            if 0 < data[0] < h and 0 < data[1] < w:
+                res_img[r][c] = gray[math.floor(data[0])][math.floor(data[1])]
 
     return res_img
+
 
 
 

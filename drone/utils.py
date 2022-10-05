@@ -8,7 +8,6 @@ def initTello():
     # drone connection
     myDrone.connect()
 
-
     # set all speed to 0
     myDrone.for_back_velocity = 0
     myDrone.left_right_velocity = 0

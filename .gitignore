@@ -1,0 +1,7 @@
+#yolo
+/yolov4-deepsort/checkpoints/yolov4-416/
+/yolov4-deepsort/data/yolov4.weights
+
+#Facial+OpenPose
+/Facial+OpenPose/faces/
+/Facial+OpenPose/poses/

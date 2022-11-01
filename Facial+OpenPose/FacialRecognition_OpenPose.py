@@ -5,27 +5,39 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 
+
+# 전반적인 프로그램 실행 순서 ( 미완 )
+
+# 전체 body를 detect
+# 각 body에서 face를 detect
+# detect한 face에서 predict(recognition)
+# predict 성공한 face와 body 정보를 알아내고
+# 그 body 만큼만 frame을 잘라서 openpose
+
+
 # Face Recognition Setting Variables
 data_path = 'faces/'
 onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f))]
 
 Training_Data, Labels = [], []
 
+# 얼굴 100장 이미지를 가져온다
 for i, files in enumerate(onlyfiles):
     image_path = data_path + onlyfiles[i]
     images = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     Training_Data.append(np.asarray(images, dtype=np.uint8))
     Labels.append(i)
 
+# 모델은 100장의 얼굴이 있는 이미지를 학습한다
 Labels = np.asarray(Labels, dtype=np.int32)
-
 model = cv2.face.LBPHFaceRecognizer_create()
-
 model.train(np.asarray(Training_Data), np.asarray(Labels))
 
+# 얼굴 분류기를 만든다
 face_classifier = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-
+# 얼굴 분류기를 통해서 이미지에 있는 얼굴의 좌표와 속성 값을 알아낸 뒤
+# 얼굴 부분만 resize된 이미지를 리턴해준다.
 def face_detector(img, size=0.5):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_classifier.detectMultiScale(gray, 1.3, 5)
@@ -57,16 +69,21 @@ POSE_PAIRS = [["Head", "Neck"], ["Neck", "RShoulder"], ["RShoulder", "RElbow"],
 BASE_DIR = Path(__file__).resolve().parent
 protoFile = str(BASE_DIR) + "/poses/pose_deploy_linevec_faster_4_stages.prototxt"
 weightsFile = str(BASE_DIR) + "/poses/pose_iter_160000.caffemodel"
-pose_type = "XHandsUp"
+
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
+
+###############################
+# 유노 작성
+pose_type = "XHandsUp"
 status = 2
 keep_time = [0, 0, 0]
 O_X_HandsUp = ["O", "X", "HandsUp"]
 Success_Fail = ["Success", "Fail"]
 
 return_result = ""
-
+##########################################
+# 여기까지 유노 작성
 
 ############################################
 # 1초마다 자세를 체크하도록 코드를 짰다. => threading.Timer 사용
@@ -279,6 +296,8 @@ while cv2.waitKey(1) < 0:  # 아무 키나 누르면 끝난다.
         cv2.waitKey()
         break
 
+#####################################
+# 유노 작성
     image, face = face_detector(frame)
 
     try:
@@ -292,6 +311,10 @@ while cv2.waitKey(1) < 0:  # 아무 키나 누르면 끝난다.
 
         if confidence > 80:
             cv2.putText(image, "Unlocked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+
+            ########################################################
+            # 여기까지 유노 작성
+
             #
             frameWidth = frame.shape[1]
             frameHeight = frame.shape[0]
@@ -341,6 +364,11 @@ while cv2.waitKey(1) < 0:  # 아무 키나 누르면 끝난다.
                 # partA와 partB 사이에 선을 그어줌 (cv2.line)
                 if points[partA] and points[partB]:
                     cv2.line(frame, points[partA], points[partB], (0, 255, 0), 2)
+
+
+
+                    ##################################################
+                    # 여기서부터 유노 작성
                     # OX일때
                     if pose_type == "OX":
                         if check_O(points):
@@ -401,6 +429,8 @@ while cv2.waitKey(1) < 0:  # 아무 키나 누르면 끝난다.
     if cv2.waitKey(1) == 13:
         break
 
+################################################
+# 여기까지 유노 작성
 
 capture.release()  # 카메라 장치에서 받아온 메모리 해제
 cv2.destroyAllWindows()  # 모든 윈도우 창 닫음

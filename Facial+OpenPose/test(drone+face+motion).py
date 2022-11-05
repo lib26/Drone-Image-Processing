@@ -53,32 +53,8 @@ def face_detector(img, size = 0.5):
 # 여기까지 part1과 거의 동일
 
 
-
-# 상승 : 오른팔 위로 일직선으로 들기
+# 상승 : O
 def check_up(landmarks):
-    right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
-    right_elbow_Index = [landmarks[14].x, landmarks[14].y]
-    noseIndex = [landmarks[0].x, landmarks[0].y]
-
-    print(abs(right_elbow_Index[0] - right_Wrist_Index[0]))
-
-    if (right_Wrist_Index[1] < noseIndex[1] and abs(right_elbow_Index[0] - right_Wrist_Index[0]) < 0.03): return True
-
-    return False
-
-
-# 착륙 : X
-def check_down(landmarks):
-    right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
-    left_Wrist_Index = [landmarks[15].x, landmarks[15].y]
-
-    if (right_Wrist_Index[0] > left_Wrist_Index[0]): return True
-
-    return False
-
-
-# 플립 : 동그라미
-def check_o(landmarks):
     right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
     left_Wrist_Index = [landmarks[15].x, landmarks[15].y]
     right_elbow_Index = [landmarks[14].x, landmarks[14].y]
@@ -93,19 +69,79 @@ def check_o(landmarks):
 
 
 
+# 착륙 : X
+def check_down(landmarks):
+    right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
+    left_Wrist_Index = [landmarks[15].x, landmarks[15].y]
+
+    if (right_Wrist_Index[0] > left_Wrist_Index[0]): return True
+
+    return False
+
+# 전진 : 오른팔 뻗기
+def check_go(landmarks):
+    right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
+    right_elbow_Index = [landmarks[14].x, landmarks[14].y]
+    noseIndex = [landmarks[0].x, landmarks[0].y]
+
+    if (right_Wrist_Index[1] < noseIndex[1] and abs(right_elbow_Index[0] - right_Wrist_Index[0]) < 0.03): return True
+
+    return False
+
+
+# 후진 : 왼팔 뻗기
+def check_back(landmarks):
+    left_Wrist_Index = [landmarks[15].x, landmarks[15].y]
+    left_elbow_Index = [landmarks[13].x, landmarks[13].y]
+    noseIndex = [landmarks[0].x, landmarks[0].y]
+
+    if (left_Wrist_Index[1] < noseIndex[1] and abs(left_elbow_Index[0] - left_Wrist_Index[0]) < 0.03): return True
+
+    return False
+
+
+# 플립 : Y
+def check_flip(landmarks):
+    right_Wrist_Index = [landmarks[16].x, landmarks[16].y]
+    right_elbow_Index = [landmarks[14].x, landmarks[14].y]
+    left_Wrist_Index = [landmarks[15].x, landmarks[15].y]
+    left_elbow_Index = [landmarks[13].x, landmarks[13].y]
+    noseIndex = [landmarks[0].x, landmarks[0].y]
+
+    if (left_Wrist_Index[1] < noseIndex[1] and right_Wrist_Index[1] < noseIndex[1] and
+            abs(left_Wrist_Index[0] - right_Wrist_Index[0]) > abs(
+                left_elbow_Index[0] - right_elbow_Index[0])): return True
+
+    return False
+
+# 사진 : 손흥민
+def check_take_picture(landmarks):
+    right_elbow_Index = [landmarks[14].x, landmarks[14].y]
+    left_elbow_Index = [landmarks[13].x, landmarks[13].y]
+    right_shoulder = [landmarks[11].x, landmarks[11].y]
+
+    print(abs(right_elbow_Index[0]-left_elbow_Index[0]))
+
+    if (right_elbow_Index[1] > right_shoulder[1] and left_elbow_Index[1] > right_shoulder[1]
+        and abs(right_elbow_Index[0]-left_elbow_Index[0]) > 0.8 ): return True
+
+    return False
+
+
+
 myDrone=initTello()
-time.sleep(5)
+time.sleep(1)
 myDrone.streamon()
 frame_read = myDrone.get_frame_read()
-time.sleep(2)
+time.sleep(1)
 
 # 이미지 파일의 경우 이것을 사용하세요.:
 w = 640
 h = 480
 # 웹캠, 영상 파일의 경우 이것을 사용하세요.:
 
-
-
+myDrone.takeoff()
+time.sleep(3)
 
 with mp_pose.Pose(
         min_detection_confidence=0.5,
@@ -170,14 +206,30 @@ with mp_pose.Pose(
                 # rightWrist = [rightWristIndex[0] * w, rightWristIndex[1] * h]
                 # leftWrist = [leftWristIndex[0] * w, leftWristIndex[1] * h]
                 if check_up(landmarks):
-                    print('드론 상승')
-                    time.sleep(3)
+                    print('상승')
+                    myDrone.move_up(40)
+                    time.sleep(2)
                 elif check_down(landmarks):
                     print('착륙')
-                    time.sleep(3)
-                elif check_o(landmarks):
+                    myDrone.land() ##
+                    time.sleep(2)
+                    # break
+                elif check_go(landmarks):
+                    print('전진')
+                    myDrone.move_forward(40) ##
+                    time.sleep(2)
+                elif check_back(landmarks):
+                    print('후진')
+                    myDrone.move_back(40) ##
+                    time.sleep(2)
+                elif check_flip(landmarks):
                     print('플립')
-                    time.sleep(3)
+                    myDrone.flip_right() ##
+                    time.sleep(2)
+                elif check_take_picture(landmarks):
+                    print('사진')
+                    cv2.imwrite("picture.png", frame_read.frame)
+                    time.sleep(2)
 
 
 
@@ -197,4 +249,7 @@ with mp_pose.Pose(
             break
 
 
+frame_read.stop()
+myDrone.streamoff()
+exit(0)
 # cap.release()

@@ -5,3 +5,6 @@
 #Facial+OpenPose
 /Facial+OpenPose/faces/
 /Facial+OpenPose/poses/
+
+#TeamProject
+/TeamProject/poses/pose_iter_160000.caffemodel

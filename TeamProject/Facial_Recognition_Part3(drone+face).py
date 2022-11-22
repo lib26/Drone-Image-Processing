@@ -3,6 +3,13 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 
+
+from droneControl import *
+from djitellopy import Tello
+import time
+from threading import Thread
+import keyboard
+
 # 3. 얼굴 인식해서 동일인인지 구분하기
 
 # 여기부터 part2와 동일
@@ -41,12 +48,18 @@ def face_detector(img, size = 0.5):
     return img,roi
 # 여기까지 part1과 거의 동일
 
+
+
+time.sleep(5)
+myDrone = initTello()
+frame_read = myDrone.get_frame_read()
+time.sleep(2)
+
 # 카메라 열기
-cap = cv2.VideoCapture(0)
 
 while True:
     # 카메라로 부터 사진 한장 읽기
-    ret, frame = cap.read()
+    frame = frame_read.frame
 
     # 얼굴 검출 시도
     image, face = face_detector(frame)
@@ -67,7 +80,8 @@ while True:
             display_string = str(confidence)+'% Confidence it is user'
         cv2.putText(image,display_string,(100,120), cv2.FONT_HERSHEY_COMPLEX,1,(250,120,255),2)
 
-        if confidence > 80:
+        # 75 보다 크면 동일 인물로 간주해 UnLocked!
+        if confidence > 75:
             cv2.putText(image, "Unlocked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
             cv2.imshow('Face Cropper', image)
 
@@ -87,5 +101,7 @@ while True:
         break
 
 
-cap.release()
+frame_read.stop()
+myDrone.streamoff()
 cv2.destroyAllWindows()
+exit(0)
